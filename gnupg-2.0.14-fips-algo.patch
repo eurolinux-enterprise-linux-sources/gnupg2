@@ -1,0 +1,66 @@
+diff -up gnupg-2.0.14/g10/encode.c.fips gnupg-2.0.14/g10/encode.c
+--- gnupg-2.0.14/g10/encode.c.fips	2009-09-21 18:53:51.000000000 +0200
++++ gnupg-2.0.14/g10/encode.c	2014-05-07 16:17:14.513814869 +0200
+@@ -732,7 +732,7 @@ encrypt_filter( void *opaque, int contro
+ 		if( efx->cfx.dek->algo == -1 ) {
+                     /* because 3DES is implicitly in the prefs, this can only
+                      * happen if we do not have any public keys in the list */
+-		    efx->cfx.dek->algo = DEFAULT_CIPHER_ALGO;
++		    efx->cfx.dek->algo = gcry_fips_mode_active() ? CIPHER_ALGO_AES : DEFAULT_CIPHER_ALGO;
+                 }
+ 
+                 /* In case 3DES has been selected, print a warning if
+diff -up gnupg-2.0.14/g10/mainproc.c.fips gnupg-2.0.14/g10/mainproc.c
+--- gnupg-2.0.14/g10/mainproc.c.fips	2014-05-07 16:33:50.040830206 +0200
++++ gnupg-2.0.14/g10/mainproc.c	2014-05-07 16:33:28.287327294 +0200
+@@ -693,9 +693,11 @@ proc_plaintext( CTX c, PACKET *pkt )
+ 	   often.  There is no good way to specify what algorithms to
+ 	   use in that case, so these three are the historical
+ 	   answer. */
+-	gcry_md_enable( c->mfx.md, DIGEST_ALGO_RMD160 );
++	if( !gcry_fips_mode_active() )
++	  gcry_md_enable( c->mfx.md, DIGEST_ALGO_RMD160 );
+ 	gcry_md_enable( c->mfx.md, DIGEST_ALGO_SHA1 );
+-	gcry_md_enable( c->mfx.md, DIGEST_ALGO_MD5 );
++	if( !gcry_fips_mode_active() )
++	  gcry_md_enable( c->mfx.md, DIGEST_ALGO_MD5 );
+       }
+     if( opt.pgp2_workarounds && only_md5 && !opt.skip_verify ) {
+ 	/* This is a kludge to work around a bug in pgp2.  It does only
+@@ -2157,24 +2159,30 @@ proc_tree( CTX c, KBNODE node )
+ 	else if( !c->any.data ) {
+ 	    /* detached signature */
+ 	    free_md_filter_context( &c->mfx );
+-            if (gcry_md_open (&c->mfx.md, sig->digest_algo, 0))
+-              BUG ();
++            if (gcry_md_open (&c->mfx.md, sig->digest_algo, 0)) {
++               log_error("Digest algorithm not available probably due to FIPS mode.\n");
++               return;
++	    }
+ 
+ 	    if( !opt.pgp2_workarounds )
+ 		;
+ 	    else if( sig->digest_algo == DIGEST_ALGO_MD5
+ 		     && is_RSA( sig->pubkey_algo ) ) {
+ 		/* enable a workaround for a pgp2 bug */
+-                if (gcry_md_open (&c->mfx.md2, DIGEST_ALGO_MD5, 0))
+-                  BUG ();
++                if (gcry_md_open (&c->mfx.md2, DIGEST_ALGO_MD5, 0)) {
++                   log_error("Digest algorithm not available probably due to FIPS mode.\n");
++                   return;
++	        }
+ 	    }
+ 	    else if( sig->digest_algo == DIGEST_ALGO_SHA1
+ 		     && sig->pubkey_algo == PUBKEY_ALGO_DSA
+ 		     && sig->sig_class == 0x01 ) {
+ 		/* enable the workaround also for pgp5 when the detached
+ 		 * signature has been created in textmode */
+-              if (gcry_md_open (&c->mfx.md2, sig->digest_algo, 0 ))
+-                BUG ();
++              if (gcry_md_open (&c->mfx.md2, sig->digest_algo, 0 )) {
++                 log_error("Digest algorithm not available.\n");
++                 return;
++	      }
+ 	    }
+ #if 0 /* workaround disabled */
+ 	    /* Here we have another hack to work around a pgp 2 bug

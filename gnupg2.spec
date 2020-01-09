@@ -1,7 +1,7 @@
 Summary: Utility for secure communication and data storage
 Name:    gnupg2
 Version: 2.0.14
-Release: 8%{?dist}
+Release: 9%{?dist}
 
 License: GPLv3+
 Group:   Applications/System
@@ -19,6 +19,7 @@ Patch7:  gnupg-2.0.14-cve-2013-4351.patch
 Patch8:  gnupg-2.0.14-encode-s2k.patch
 Patch9:  gnupg-2.0.14-libgcrypt-init.patch
 Patch10: gnupg-2.0.14-fips-algo.patch
+Patch11: gnupg-2.0.14-cve-2018-12020.patch
 
 URL:     http://www.gnupg.org/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -87,6 +88,7 @@ to the base GnuPG package
 %patch8 -p0 -b .encode-s2k
 %patch9 -p1 -b .libgcrypt-init
 %patch10 -p1 -b .fips
+%patch11 -p1 -b .sanitize-filename
 
 # pcsc-lite library major: 0 in 1.2.0, 1 in 1.2.9+ (dlopen()'d in pcsc-wrapper)
 # Note: this is just the name of the default shared lib to load in scdaemon,
@@ -199,6 +201,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Jun 21 2018 Tomáš Mráz <tmraz@redhat.com> - 2.0.14-9
+- fix CVE-2018-12020 - missing sanitization of original filename
+
 * Wed May  7 2014 Tomáš Mráz <tmraz@redhat.com> - 2.0.14-8
 - fix aborts and default algorithms when running in FIPS mode (#1078957, #966493)
 - add missing initialization of libgcrypt in gpgv

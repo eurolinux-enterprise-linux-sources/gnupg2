@@ -1,7 +1,7 @@
 Summary: Utility for secure communication and data storage
 Name:    gnupg2
 Version: 2.0.14
-Release: 4%{?dist}
+Release: 6%{?dist}
 
 License: GPLv3+
 Group:   Applications/System
@@ -13,6 +13,9 @@ Patch1:  gnupg-2.0.13-insttools.patch
 Patch2:  gnupg-2.0.14-tests-s2kcount.patch
 Patch3:  gnupg-2.0.14-secmem.patch
 Patch4:  gnupg-2.0.14-cve-2010-2547.patch
+Patch5:  gnupg-2.0.14-cve-2012-6085.patch
+Patch6:  gnupg-2.0.14-cve-2013-4402.patch
+Patch7:  gnupg-2.0.14-cve-2013-4351.patch
 
 URL:     http://www.gnupg.org/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -36,7 +39,7 @@ BuildRequires: zlib-devel
 
 Requires(post): /sbin/install-info
 Requires(postun): /sbin/install-info
-Requires(hint): pinentry
+Requires: pinentry
 
 # pgp-tools, perl-GnuPG-Interface requires 'gpg' (not sure why) -- Rex
 Provides: gpg = %{version}-%{release}
@@ -48,7 +51,7 @@ Obsoletes: gnupg <= 1.4.10
 Summary: CMS encryption and signing tool and smart card support for GnuPG
 Requires: gnupg2 = %{version}-%{release}
 Group: Applications/Internet
-Requires(hint): dirmngr
+Requires: dirmngr
 
 
 %description
@@ -75,6 +78,9 @@ to the base GnuPG package
 %patch2 -p1 -b .s2k
 %patch3 -p1 -b .secmem
 %patch4 -p1 -b .x509-realloc
+%patch5 -p1 -b .key-validation
+%patch6 -p1 -b .nesting
+%patch7 -p1 -b .no-usage
 
 # pcsc-lite library major: 0 in 1.2.0, 1 in 1.2.9+ (dlopen()'d in pcsc-wrapper)
 # Note: this is just the name of the default shared lib to load in scdaemon,
@@ -187,6 +193,13 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Oct 11 2013 Tomas Mraz <tmraz@redhat.com> - 2.0.14-6
+- fix CVE-2013-4351 gpg treats no-usage-permitted keys as all-usages-permitted
+
+* Thu Oct 10 2013 Tomas Mraz <tmraz@redhat.com> - 2.0.14-5
+- fix CVE-2012-6085 GnuPG: read_block() corrupt key input validation
+- fix CVE-2013-4402 GnuPG: infinite recursion in the compressed packet parser
+
 * Mon Aug  2 2010 Tomas Mraz <tmraz@redhat.com> - 2.0.14-4
 - fix use after free when importing certain X509 certificates
   CVE-2010-2547 (#618156)

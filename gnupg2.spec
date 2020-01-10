@@ -1,7 +1,7 @@
 Summary: Utility for secure communication and data storage
 Name:    gnupg2
 Version: 2.0.22
-Release: 5%{?dist}
+Release: 1%{?dist}
 
 License: GPLv3+
 Group:   Applications/System
@@ -13,9 +13,7 @@ Patch1:  gnupg-2.0.20-insttools.patch
 Patch3:  gnupg-2.0.20-secmem.patch
 Patch4:  gnupg-2.0.18-protect-tool-env.patch
 Patch5:  gnupg-2.0.20-ocsp-keyusage.patch
-Patch6:  gnupg-2.0.22-fips-algo.patch
-Patch7:  gnupg-2.0.22-rsa-es.patch
-Patch8:  gnupg-2.0.22-cve-2018-12020.patch
+Patch6:  gnupg-2.0.19-fips-algo.patch
 
 URL:     http://www.gnupg.org/
 
@@ -80,8 +78,6 @@ to the base GnuPG package
 %patch4 -p1 -b .ptool-env
 %patch5 -p1 -b .keyusage
 %patch6 -p1 -b .fips
-%patch7 -p1 -b .rsa-es
-%patch8 -p1 -b .sanitize-filename
 
 # pcsc-lite library major: 0 in 1.2.0, 1 in 1.2.9+ (dlopen()'d in pcsc-wrapper)
 # Note: this is just the name of the default shared lib to load in scdaemon,
@@ -197,19 +193,6 @@ fi
 
 
 %changelog
-* Thu Jun 21 2018 Tomáš Mráz <tmraz@redhat.com> - 2.0.22-5
-- fix CVE-2018-12020 - missing sanitization of original filename
-
-* Thu Mar 24 2016 Tomáš Mráz <tmraz@redhat.com> - 2.0.22-4
-- allow import of RSA-E and RSA-S keys (patch by Marcel Kolaja) (#1233182)
-- do not abort when missing hash algorithm in FIPS mode (#1078962)
-
-* Fri Jan 24 2014 Daniel Mach <dmach@redhat.com> - 2.0.22-3
-- Mass rebuild 2014-01-24
-
-* Fri Dec 27 2013 Daniel Mach <dmach@redhat.com> - 2.0.22-2
-- Mass rebuild 2013-12-27
-
 * Thu Oct 10 2013 Tomáš Mráz <tmraz@redhat.com> - 2.0.22-1
 - new upstream release fixing CVE-2013-4402 and CVE-2013-4351
 
